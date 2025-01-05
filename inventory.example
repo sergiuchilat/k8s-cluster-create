@@ -1,0 +1,17 @@
+[webservers]
+master  ansible_host=192.168.0.1  ansible_public_ip=192.168.0.1  ansible_private_ip=192.168.0.1
+worker1 ansible_host=192.168.0.2   ansible_public_ip=192.168.0.2    ansible_private_ip=192.168.0.2
+worker2 ansible_host=192.168.0.3   ansible_public_ip=192.168.0.3   ansible_private_ip=192.168.0.3
+
+[all]
+master
+worker1
+worker2
+
+[master]
+master
+
+[workers]
+worker1
+worker2
+
