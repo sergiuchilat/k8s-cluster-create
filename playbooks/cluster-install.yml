@@ -14,6 +14,16 @@
       apt:
         update_cache: yes
 
+    - name: disable SWAP (Kubeadm requirement)
+      shell: |
+        swapoff -a
+
+    - name: disable SWAP in fstab (Kubeadm requirement)
+      replace:
+        path: /etc/fstab
+        regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+        replace: '# \1'
+
     - name: Install required packages
       apt:
         name:
