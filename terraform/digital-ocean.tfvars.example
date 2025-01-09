@@ -6,3 +6,4 @@ droplet_size_master = "s-2vcpu-2gb"
 droplet_size_worker = "s-1vcpu-1gb"
 droplet_os_master="ubuntu-22-04-x64"
 droplet_os_worker="ubuntu-22-04-x64"
+
