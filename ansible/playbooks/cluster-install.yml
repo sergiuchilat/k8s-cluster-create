@@ -3,7 +3,6 @@
   hosts: all
   gather_facts: yes
   become: yes
-  # serial: 1
   user: root
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
@@ -71,10 +70,12 @@
     - name: Load overlay kernel module
       modprobe:
         name: overlay
+        state: present
 
     - name: Load br_netfilter kernel module
       modprobe:
         name: br_netfilter
+        state: present
 
     # Configure sysctl for networking
     - name: Enable IP forwarding and bridge-nf-call-iptables

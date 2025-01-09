@@ -1,0 +1,8 @@
+digitalocean_token = <DO_TOKEN>
+workers_count = <TOTAL_NUMBER_OF_WORKER_NODES>
+region = <DO_REGION>
+digitalocean_ssh_key_name = <DO_SSH_KEY_NAME>
+droplet_size_master = "s-2vcpu-2gb"
+droplet_size_worker = "s-1vcpu-1gb"
+droplet_os_master="ubuntu-22-04-x64"
+droplet_os_worker="ubuntu-22-04-x64"
