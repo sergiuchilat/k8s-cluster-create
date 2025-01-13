@@ -20,6 +20,9 @@ export KUBECONFIG=./cluster-config
 ```
 kubectl get nodes
 
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.7/manifests/namespace.yaml
+
+
 
 
 

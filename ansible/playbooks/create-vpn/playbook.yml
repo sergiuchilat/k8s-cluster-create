@@ -1,0 +1,113 @@
+---
+- name: Install and configure WireGuard VPN
+  hosts: all
+  become: true
+  vars:
+    server_private_ip: "10.110.0.11"
+    server_port: 51820
+    peer_list:
+      - name: peer1
+        allowed_ip: "10.0.0.2/32"
+      - name: peer2
+        allowed_ip: "10.0.0.3/32"
+  tasks:
+
+    - name: Install WireGuard
+      apt:
+        name: wireguard
+        state: present
+        update_cache: true
+
+    - name: Enable IP forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        state: present
+        sysctl_set: true
+        reload: true
+
+    - name: Create WireGuard configuration directory
+      file:
+        path: "/etc/wireguard/peers"
+        state: directory
+        mode: "0700"
+
+    - name: Generate server private key
+      command: wg genkey
+      register: server_private_key
+      args:
+        creates: "/etc/wireguard/server_private.key"
+
+    - name: Save server private key
+      copy:
+        content: "{{ server_private_key.stdout }}"
+        dest: "/etc/wireguard/server_private.key"
+        mode: "0600"
+
+    - name: Generate server public key
+      command: echo "{{ server_private_key.stdout }}" | wg pubkey
+      register: server_public_key
+      args:
+        creates: "/etc/wireguard/server_public.key"
+
+    - name: Save server public key
+      copy:
+        content: "{{ server_public_key.stdout }}"
+        dest: "/etc/wireguard/server_public.key"
+        mode: "0600"
+
+    - name: Generate server configuration file
+      template:
+        src: server_config.j2
+        dest: "/etc/wireguard/wg0.conf"
+        mode: "0600"
+      vars:
+        server_private_key: "{{ server_private_key.stdout }}"
+        server_port: "{{ server_port }}"
+        peer_list: "{{ peer_list }}"
+
+    - name: Generate peer keys and configurations
+      block:
+        - name: Generate peer private key
+          command: wg genkey
+          register: peer_private_key
+          args:
+            creates: "/etc/wireguard/peers/{{ item.name }}_private.key"
+
+        - name: Save peer private key
+          copy:
+            content: "{{ peer_private_key.stdout }}"
+            dest: "/etc/wireguard/peers/{{ item.name }}_private.key"
+            mode: "0600"
+
+        - name: Generate peer public key
+          command: echo "{{ peer_private_key.stdout }}" | wg pubkey
+          register: peer_public_key
+          args:
+            creates: "/etc/wireguard/peers/{{ item.name }}_public.key"
+
+        - name: Save peer public key
+          copy:
+            content: "{{ peer_public_key.stdout }}"
+            dest: "/etc/wireguard/peers/{{ item.name }}_public.key"
+            mode: "0600"
+
+        - name: Generate peer configuration file
+          template:
+            src: peer_config.j2
+            dest: "/etc/wireguard/peers/{{ item.name }}.conf"
+            mode: "0600"
+          vars:
+            peer_private_key: "{{ peer_private_key.stdout }}"
+            server_public_key: "{{ server_public_key.stdout }}"
+            server_ip: "{{ server_private_ip }}"
+            allowed_ip: "{{ item.allowed_ip }}"
+      with_items: "{{ peer_list }}"
+      loop_control:
+        loop_var: item
+
+    - name: Start and enable WireGuard service
+      systemd:
+        name: wg-quick@wg0
+        enabled: true
+        state: started

@@ -1,6 +1,6 @@
 ---
 - name: Setup Kubernetes Cluster with Kubeadm
-  hosts: all
+  hosts: webservers
   gather_facts: yes
   become: yes
   user: root
@@ -12,6 +12,7 @@
     - name: Update package list
       apt:
         update_cache: yes
+      retries: 3
 
     - name: disable SWAP (Kubeadm requirement)
       shell: |
@@ -53,6 +54,7 @@
     - name: Update package list after adding Kubernetes repo
       apt:
         update_cache: yes
+      retries: 3
 
     - name: Install Kubernetes packages
       apt:
@@ -129,7 +131,7 @@
     - name: Initialize Kubernetes control plane
       ansible.builtin.shell: |
         kubeadm init \
-        --apiserver-advertise-address={{ ansible_private_ip }} \
+        --apiserver-advertise-address={{ ansible_public_ip }} \
         --pod-network-cidr=10.244.0.0/16 \
         --apiserver-cert-extra-sans={{ ansible_public_ip }}
       args:
@@ -175,8 +177,8 @@
 
   tasks:
     - name: Join Kubernetes cluster
-      ansible.builtin.shell: "{{ hostvars['master']['join_command'] }}"
-      when: hostvars['master']['join_command'] is defined
+      ansible.builtin.shell: "{{ hostvars['k8s-master']['join_command'] }}"
+      when: hostvars['k8s-master']['join_command'] is defined
 
 - name: Install Flannel CNI
   hosts: master
