@@ -1,0 +1,11 @@
+[Interface]
+Address = {{ vpn_network }}
+ListenPort = 51820
+PrivateKey = {{ server_private_key }}
+
+# Peers
+{% for peer in peers %}
+[Peer]
+PublicKey = {{ lookup('file', '/etc/wireguard/peers/' + peer.name + '_public.key') }}
+AllowedIPs = {{ peer.allowed_ip }}
+{% endfor %}

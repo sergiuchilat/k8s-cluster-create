@@ -1,0 +1,25 @@
+- name: Reinstall Linux on a DigitalOcean Droplet
+  hosts: webservers
+  user: root
+  vars_files:
+    - ../../vars.yml
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+  tasks:
+    - name: Rebuild the droplet using the DigitalOcean API
+      uri:
+        url: "https://api.digitalocean.com/v2/droplets/{{ server_id }}/actions"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+          Authorization: "Bearer {{ digitalocean_token }}"
+        body: |
+          {
+            "type": "rebuild",
+            "image": "ubuntu-24-04-x64"
+          }
+      register: rebuild_response
+
+    - name: Debug rebuild response
+      debug:
+        var: rebuild_response

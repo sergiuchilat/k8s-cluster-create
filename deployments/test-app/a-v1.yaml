@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: web
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-a
+  namespace: web
+  labels:
+    app.name: web-app-a
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.name: web-app-a
+  template:
+    metadata:
+      labels:
+        app.name: web-app-a
+    spec:
+      containers:
+        - image: nginx
+          name: web-app-a
+          command:
+            - /bin/sh
+            - -c
+            - "echo 'welcome to my web app!' > /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"
+          ports:
+            - containerPort: 80
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "2"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-app-a
+  namespace: web
+  labels:
+    app.name: web-app-a
+spec:
+  selector:
+    app.name: web-app-a
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+  type: LoadBalancer
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-app-a-ingress
+  namespace: web
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx  # Referencing the NGINX IngressClass
+  tls:
+    - hosts:
+        - a.k8s.bitsoft.md
+      secretName: web-app-tls
+  rules:
+    - host: a.k8s.bitsoft.md
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web-app-a
+                port:
+                  number: 80
+

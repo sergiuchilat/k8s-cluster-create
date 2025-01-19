@@ -1,0 +1,28 @@
+---
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  addresses:
+    - 203.0.113.10-203.0.113.50
+#    - 165.232.89.21
+#    - 64.227.75.37
+#    - 165.232.88.54
+#    - 178.62.200.252
+#    - 142.93.142.184
+#    - 178.62.217.137
+#    - 178.62.238.49
+#    - 64.227.76.198
+#    - 64.227.69.28
+  autoAssign: true
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - default
